@@ -1,0 +1,127 @@
+\documentclass[12pt]{article}
+
+\usepackage{answers}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{mathrsfs}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amsthm,amssymb}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+
+\DeclareMathOperator{\sech}{sech}
+\DeclareMathOperator{\csch}{csch}
+
+\newenvironment{theorem}[2][Theorem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{definition}[2][Definition]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{proposition}[2][Proposition]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{lemma}[2][Lemma]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{exercise}[2][Exercise]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{solution}[2][Solution]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{question}[2][Question]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{corollary}[2][Corollary]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+
+\begin{document}
+
+% --------------------------------------------------------------
+%                         Start here
+% --------------------------------------------------------------
+
+\title{Aldrich, Ballard, and Montgomery Models Write-up}%replace with the appropriate homework number
+%\author{Your Name\\ %replace with your name
+%Course-Semester} %if necessary, replace with your course title
+
+
+
+\maketitle
+%Below is an example of the problem environment
+
+\section*{General Procedure}
+
+For each model, we 1) generate a distribution of ideal points for members of two parties in a legislature with 101 members, 2) define the probability that each member votes for a proposal over the status quo on a given roll call vote, and 3) generate random proposal and status quo points. Each model is close to this general procedure, but with modifications. These procedures ceom from Aldrich, Montgomery, and Sparks (2014, hereinafter AMS).
+
+\subsection*{Distribution of Member Ideal Points}
+
+Each member $i$ has an ideal point $\boldsymbol{x_i}$ that is drawn from a multivariate normal distribution $\boldsymbol{x_i} \sim N(\boldsymbol{0}_p, \boldsymbol{I}_{p \times p})$ where $p$ denotes the number of dimensions of the policy space. We assume that each of $M = 101$ legislators comes from one of two parties whose mean ideal points are a distance, $D$, apart along some number of separating dimensions $p_D \in [0, 1,...,p]$. For the 51 members of the majority party, their ideal points are distributed $\boldsymbol{x_1} \sim N(\boldsymbol{\mu}_p, \boldsymbol{I}_{p \times p})$, and the 50 members of the minority party have ideal points distributed $\boldsymbol{x_1} \sim N(-\boldsymbol{\mu}_p, \boldsymbol{I}_{p \times p})$. Here, $\boldsymbol{\mu_p}$ is a vector of length $p$ where the first $p_D$ elements are equal to $\frac{D}{2}$ and the remaining $p - p_D$ elements are equal to $0$. For instance, if $p_D = 2$ and $p = 4$, then $\boldsymbol{\mu_p} \equiv (\frac{D}{2}, \frac{D}{2}, 0, 0)$.
+
+\subsection*{Voting Behavior}
+
+We define the probability of legislator $i$ voting for a proposal point $\boldsymbol{b}_j$ over a status quo point $\boldsymbol{a}_j$ on roll call $j$ as:
+
+\begin{equation}
+    P_{ij} = \Phi \left[ \beta \left\lbrace \sum_{p=1}^{P}{w_p||x_{ip} - b_{jp}||^2} - \sum_{p=1}^{P}{w_p||x_{ip} - a_{jp}||^2} \right\rbrace \right],
+\end{equation}
+
+\vspace{2mm}
+\noindent
+where $w_p$ is the weight of members' preferences for dimension $p$, $\Phi$ is the CDF of the standard normal distribution, and $\beta$ is a scaling parameter for probabilistic voting, $\beta \in [0.5, 1, 1.5]$.
+
+\subsection*{Generating Roll Calls}
+
+For each roll call, we randomly select $\boldsymbol{a}_j$ and $\boldsymbol{b}_j$ from a $p$-dimensional hypersphere centered at the origin with radius $r \in [9, 11]$. We discard all votes where fewer than 3\% of members are in the minority.
+
+\section*{Model 1: Party as Procedural Coalition}
+
+Here, we examine the effect of procedural voting---over which parties have near-perfect control of their members' voting behavior in practice---on the scaled dimensionality of the policy space as the ideal points of members of two parties in an imagined legislature that resembles the US Senate become more distinct.
+
+The generation of ideal points and roll call proposals is identical to that of AMS, but we designate some proportion $c \in [0.01, 0.05, 0.10, 0.15, 0.20]$ of the roll calls to be procedural votes determined by the party. We represent the party's preferences by designating a party leadership ideal point $\boldsymbol{y}_k$ for $k \in [D, R]$ that is some distance $d$ from the mean of the party's ideal points.\footnote{If we go this route, we should just choose a direction and stick with it. Either directly toward the origin or away from it seems like the best option. Or we could do both and look at the effect of leadership that is more/less extreme than the membership.}
+
+For each party, all votes cast on procedural roll calls will be determined by the preferences of their party's ideal point, substituting the party ideal point $\boldsymbol{y}_k$  for $\boldsymbol{x}_i$ in Eq. 1 to give
+
+\begin{equation}
+    P_{ijk} = \Phi \left[ \beta \left\lbrace \sum_{p=1}^{P}{w_p||y_{kp} - b_{jp}||^2} - \sum_{p=1}^{P}{w_p||y_{kp} - a_{jp}||^2} \right\rbrace \right],
+\end{equation}
+
+\section*{Model 2: The Benefits of Party Reputation}
+
+Here we consider how the benefit of voting with the party, and in the process receiving and maintaining the party's reputation on certain policies, affects the observed dimensionality of roll call voting.
+
+\subsection*{Member Ideal Points}
+
+The ideal points in this model are distributed in the same manner as those in Model 1.
+
+\subsection*{Voting Behavior}
+
+The process of voting is similar to that of model 1, where members have quadratic preferences for policies based on the policy's distance from their ideal point. However, in this model, we allocate an additional benefit to voting with the majority of one's party. In the simplest form, we add a constant $r$ to each member's utility if their preferred choice between $\boldsymbol{a}_j$ and $\boldsymbol{b}_j$ is also preferred by a majority of the members of their party. Member $i$ prefers the status quo ($\boldsymbol{a}_j$) to the proposal ($\boldsymbol{b}_j$) if 
+
+\begin{equation}
+\sum_{p=1}^{P}{w_p||x_{ip} - a_{jp}||^2} < \sum_{p=1}^{P}{w_p||x_{ip} - b_{jp}||^2}
+\end{equation}
+
+\vspace{2mm}
+\noindent
+
+However, it may also be true that members reap greater benefits from voting with their party if they also have a history of doing so. For this reason we examine a second model where $r$ is multiplied by $h_i$, the proportion of votes on which member $i$ has historically voted with a majority of their party.\footnote{For this it would be necessary to simulate a number of roll calls to see how often members vote with a majority of their party. We could also have $h$ be a draw from a posterior distribution of the probability that each member will vote with most of their party (i.e. start with flat priors and update with data from some number of initial votes). It may also be a good idea to have the ``benefit'' allocated to the next vote (so to have a lagged component). Otherwise, the benefit of party reputation for voting with the party won't actually affect the decisions of any members.}
+
+\section*{Model 3: To the Victor Go The Spoils}
+
+This model builds directly on model 2. Members are given a bonus for voting with the majority of their party, but the benefit to voting with one's party is only given if the party wins the vote. The distribution of member ideal points and utility functions for deciding between the proposal ($\boldsymbol{b}_j$) and the status quo ($\boldsymbol{a}_j$) are nearly identical to those in model 2. The only difference is that in model 3, the party reputation benefit is only allocated if members vote with a majority of their party \emph{and} the majority of the party votes for the winning alternative.
+
+\section*{Model 4: Similarity Versus Extremity}
+
+Here we test whether parties which have extremely similar (but not overlapping) distributions of ideal points still scale to a single dimension. This builds off a finding from AMS that the uncovered dimensionality of the policy space was higher when there was more overlap in the distributions of ideal points for members of each party.
+
+\subsection*{Member Ideal Points}
+
+Like in the general procedure, the ideal points for members from each party will be drawn from multivariate normal distributions where the parties are separated along some number of dimensions. However, in model 4 the ideal points will be drawn from truncated multivariate normal distributions, such that the ideal points from each party are functionally split along a hyperplane with $p-1$ dimensions. For simplicity, we define this hyperplane as the subspace of our $p$-dimensional policy space where the first dimension equals zero. In other words, we truncate the first dimension of the policy space so that the distribution of ideal points in both parties does not cross zero. In this scenario, we also do not allow the parties to be separated along the first dimension.
+
+\subsection*{Voting Behavior}
+
+The voting behavior in this model is identical to that of the general procedure, where we generate probability that each member votes for the proposal ($\boldsymbol{b}_j$) over the status quo ($\boldsymbol{a}_j$) according to Eq. 1, which we then use to generate roll call votes for each member. Proposal and status quo points are again generated from a $p$-dimensional hypersphere centered at the origin.
+
+\end{document}
