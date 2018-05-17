@@ -1,4 +1,7 @@
+### Setup
 rm(list = ls())
+
+# Load packages
 loadLib <- function(toLoad){
     for(lib in toLoad){
         if(! lib %in% installed.packages()[,1])
@@ -8,9 +11,14 @@ loadLib <- function(toLoad){
 }
 toLoad <- c(
     'mvtnorm', 'pscl', 'wnominate', 'arm', 'MASS', 'akima', 'plyr', 'fields',
-    'foreach', 'parallel', 'tidyverse', 'magrittr', 'hitandrun'
+    'foreach', 'parallel', 'tidyverse', 'magrittr', 'hitandrun', 'Rcpp', 'reticulate'
 )
 loadLib(toLoad)
+
+# Dir
+if(Sys.info()['user']=='aob5' | Sys.info()['user']=='Andy'){
+    pth <- 'C:/Users/Andy/RCDim/'
+}
 
 
 ### Define parameters
@@ -50,25 +58,30 @@ props <- nBallDraw(nDim = dims)
 
 
 ### Calculate probability of voting Yea on each roll call for each member
-voteFn <- function(party, majority_status = 'majority'){
-    df <- apply(party, 1, function(mc){
-        sqD <- apply(sqs, 1, function(sq){
-            abs(mc - sq)^2 %>% sum()
-        })
-        
-        propD <- apply(props, 1, function(prop){
-            abs(mc - prop)^2 %>% sum()
-        })
-        
-        diff <- propD - sqD 
-        votes <- pnorm(diff) %>%
-            round()
-        votes
-    }) %>% t() %>% as.data.frame()
-    df$status <- majority_status
-    return(df)
-}
-rcsMaj <- voteFn(party = maj)
+
+# C++ function to compute distance between 
+sourceCpp(file = paste0(pth, 'rcDF.cpp'))
+#voteFn <- function(party, majority_status = 'majority'){
+#    sqD <- apply(party, 1, function(mc){
+#        sqs <- apply(sqs, 1, function(sq){
+#            abs(mc - sq)^2 %>% sum()
+#        })
+#        sqs
+#    })
+#        
+#        propD <- apply(props, 1, function(prop){
+#            abs(mc - prop)^2 %>% sum()
+#        })
+#        
+#        diff <- propD - sqD 
+#        votes <- pnorm(diff) %>%
+#            round()
+#        votes
+#    }) %>% t() %>% as.data.frame()
+#    df$status <- majority_status
+#    return(df)
+#}
+rcsMaj <- voteFn(props, sqs, maj)
 rcsMin <- voteFn(party = min, majority_status = 'minority')
 rcs <- rbind(rcsMaj, rcsMin)
 
@@ -109,8 +122,8 @@ props <- apply(rcs, 1, function(rc){
 distsMaj <- apply(maj, 1, function(mc){
     origin <- mus+(D/2)
     dist <- rbind(origin, mc) %>%
-            dist() %>%
-            as.numeric()
+        dist() %>%
+        as.numeric()
     dist
 })
 distsMin <- apply(min, 1, function(mc){
