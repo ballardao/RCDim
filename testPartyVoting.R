@@ -21,69 +21,8 @@ if(Sys.info()['user']=='aob5' | Sys.info()['user']=='Andy'){
 }
 
 
-### Define parameters
-dims <- 2
-mus <- rep(0, dims)
-D <- 3
-sig <- diag(dims)
-rcN <- 10000
-
-### Generate ideal points
-maj <- mvrnorm(51, mus+(D/2), sig)
-min <- mvrnorm(50, mus-(D/2), sig)
-mcs <- rbind(maj, min)
-
-### Generate roll calls
-#sqs <- hypersphere.sample(dims, rcN)
-#props <- hypersphere.sample(dims, rcN)
-
-nBallDraw <- function(nDim, nDraws=10000, .radius=5){
-    ## nDim The total number of dimensions
-    ## nDraws The number of 
-    ## .radius The radius of the hypersphere
-    normingFunction<-function(x, radius){
-        x<-as.matrix(x)
-        numerator<-norm(x, type="F")
-        numerator<-numerator/radius
-        return(x/numerator)
-    }
-    
-    X<-matrix(rnorm((nDim+2)*nDraws), ncol=(nDim+2))
-    output<-aaply(X, 1, normingFunction, radius=.radius)
-    return((matrix(output[, 1:nDim], ncol=nDim)))
-    ## Returns a nDraw by nDim matrix of points.
-}
-sqs <- nBallDraw(nDim = dims)
-props <- nBallDraw(nDim = dims)
-
-
-### Calculate probability of voting Yea on each roll call for each member
-
-# C++ function to compute distance between 
-sourceCpp(file = paste0(pth, 'rcDF.cpp'))
-#voteFn <- function(party, majority_status = 'majority'){
-#    sqD <- apply(party, 1, function(mc){
-#        sqs <- apply(sqs, 1, function(sq){
-#            abs(mc - sq)^2 %>% sum()
-#        })
-#        sqs
-#    })
-#        
-#        propD <- apply(props, 1, function(prop){
-#            abs(mc - prop)^2 %>% sum()
-#        })
-#        
-#        diff <- propD - sqD 
-#        votes <- pnorm(diff) %>%
-#            round()
-#        votes
-#    }) %>% t() %>% as.data.frame()
-#    df$status <- majority_status
-#    return(df)
-#}
-rcsMaj <- voteFn(props, sqs, maj)
-rcsMin <- voteFn(party = min, majority_status = 'minority')
-rcs <- rbind(rcsMaj, rcsMin)
+### Source rc generation for testing
+source(paste0(pth, 'genRCs.R'))
 
 
 ### Take out near-unanimous votes 

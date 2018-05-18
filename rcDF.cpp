@@ -3,61 +3,62 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-double square( double x ){
+double square( double x ) {
 	return x*x;
 }
 
 // [[Rcpp::export]]
-double rnd( double x ){
+double rnd( double x ) {
 	return round(x);
 }
 
 // [[Rcpp::export]]
-NumericMatrix voteFn(NumericMatrix props, NumericMatrix sqs, NumericMatrix mcs) {
+double diffs(NumericVector bill, NumericVector mc) {
+	NumericVector dist = mc - bill;
+	NumericVector absDist = abs(dist);
+	NumericVector powDist = sapply(absDist, square);
+	double distSum = sum(powDist);
+	return distSum;
+}
+
+// [[Rcpp::export]]
+NumericVector adjud(NumericVector propDiffs, NumericVector sqDiffs) {
+	NumericVector billDiff = propDiffs - sqDiffs;
+	NumericVector voteProbs = pnorm(billDiff);
+	NumericVector votes = sapply(voteProbs, rnd);
+	return votes;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericVector rcFn(NumericMatrix props, NumericMatrix sqs, NumericMatrix mcs) {
 	
-	/* Pull dimensions of matrices for looping, create a blank matrix to populate */
-	int nrowProp = props.nrow(), nrowMC = mcs.nrow(), ncol = props.ncol();
-	NumericMatrix out(nrowProp, ncol);
+	/* Pull dimensions of matrices */  
+	int nProp = props.nrow(), nMC = mcs.nrow();
+
+	/* Create a blank matrix to populate */
+	NumericMatrix out(nMC, nProp);
 
 	/* Loop through each MC */
-	for (int i = 0; i < nrowMC; i++) {
+	for (int i = 0; i < nMC; i++) {
 		
 		/* Pull the vector representing the MC's ideal point */
-		Rcpp::NumericVector mc = mcs(i, _);
+		NumericVector mc = mcs(i, _);
 
-		/* Initialize vectors for the MC's distance to the proposal and SQ points */
-		NumericVector propDists(ncol);
-		NumericVector sqDists(ncol);
+		/* Empty vectors for sqs and proposals */
+		NumericVector propDiffs(nProp);
+		NumericVector sqDiffs(nProp);
 
-		/* Loop through the proposal and SQ ideal points */
-		for (int j = 0; j < nrowProp; j++) {
+		/* Difference between MC ideal point and each sq/proposal */ 
+		for (int j = 0; j < nProp; j++) {
+			NumericVector prop = props(j, _);
+			NumericVector sq = sqs(j, _);
 
-			/* Pull vector representing ideal points */
-			Rcpp::NumericVector prop = props(j, _);
-			Rcpp::NumericVector sq = sqs(j, _);
-
-			/* Take difference between MC and bill ideal points */
-			Rcpp::NumericVector pDist = abs(mc - prop);
-			Rcpp::NumericVector sDist = abs(mc - sq);
-
-			/* Square the differences */
-			Rcpp::NumericVector propDist = sapply( pDist, square );
-			Rcpp::NumericVector sqDist = sapply( sDist, square );
-
-
-			/* Sum elements */
-			double propDistSum = sum(propDist);
-			double sqDistSum = sum(sqDist);
-
-			/* Populate distances vector */
-			propDists[j] = propDistSum;
-			sqDists[j] = sqDistSum;
+			propDiffs[j] = diffs(prop, mc);
+			sqDiffs[j] = diffs(sq, mc);
 		}
 
 		/* Adjudicate between proposals and SQs */
-		NumericVector diff = propDists - sqDists;
-		NumericVector voteProbs = pnorm(diff);
-		Rcpp::NumericVector votes = sapply(voteProbs, rnd);
+		NumericVector votes = adjud(propDiffs, sqDiffs);
 
 		/* Populate matrix of votes */
 		out(i, _) = votes;
